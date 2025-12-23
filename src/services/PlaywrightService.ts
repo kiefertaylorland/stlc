@@ -57,7 +57,7 @@ test('${sanitizedDescription}', async ({ page }) => {
    *              when the validation logic is implemented.
    */
   async validateTest(_code: string): Promise<{ valid: boolean; errors?: string[] }> {
-    // Placeholder - will implement syntax validation
+    // Placeholder - will implement syntax validation; _code is intentionally unused for now.
     return { valid: true };
   }
 
