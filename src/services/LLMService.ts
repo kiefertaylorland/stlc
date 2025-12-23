@@ -75,19 +75,40 @@ export class LLMService {
     if (context.issueId) {
       sanitized.issueId = context.issueId;
     }
-    // Only include safe metadata fields
+    // Only include safe metadata fields (recursively sanitize nested structures)
     if (context.metadata) {
-      sanitized.metadata = Object.keys(context.metadata).reduce((acc, key) => {
-        // Exclude potentially sensitive fields (case-insensitive check)
-        const lowerKey = key.toLowerCase();
-        if (!['token', 'secret', 'password', 'key', 'apikey', 'api_key'].some(s => lowerKey.includes(s))) {
-          acc[key] = context.metadata![key];
-        }
-        return acc;
-      }, {} as Record<string, unknown>);
+      sanitized.metadata = this.sanitizeMetadata(context.metadata);
     }
     
     return sanitized;
+  }
+
+  /**
+   * Recursively sanitize metadata objects/arrays by removing keys that appear sensitive.
+   * This applies the same case-insensitive substring checks used at the top level.
+   */
+  private sanitizeMetadata(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeMetadata(item));
+    }
+
+    if (value !== null && typeof value === 'object') {
+      const sensitiveSubstrings = ['token', 'secret', 'password', 'key', 'apikey', 'api_key'];
+      const result: Record<string, unknown> = {};
+
+      for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+        const lowerKey = key.toLowerCase();
+        if (sensitiveSubstrings.some((s) => lowerKey.includes(s))) {
+          // Skip potentially sensitive fields
+          continue;
+        }
+        result[key] = this.sanitizeMetadata(val);
+      }
+
+      return result;
+    }
+
+    return value;
   }
 
   /**
