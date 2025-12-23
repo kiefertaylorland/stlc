@@ -27,10 +27,15 @@ router.post('/', async (req: Request, res: Response) => {
       isLLMConfigured: llmService.isConfigured()
     });
   } catch (error: any) {
-    res.status(500).json({
-      error: 'Failed to process chat message',
-      message: error.message
-    });
+    const responseBody: { error: string; details?: string } = {
+      error: 'Failed to process chat message'
+    };
+
+    if (process.env.NODE_ENV !== 'production' && error && error.message) {
+      responseBody.details = String(error.message);
+    }
+
+    res.status(500).json(responseBody);
   }
 });
 
