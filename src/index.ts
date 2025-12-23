@@ -23,7 +23,7 @@ const devAllowedOrigins = process.env.DEV_ALLOWED_ORIGINS?.split(',').map(origin
 
 const corsOptions = {
   origin: config.nodeEnv === 'production' 
-    ? process.env.ALLOWED_ORIGINS?.split(',') || false
+    ? process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || false
     : devAllowedOrigins,
   credentials: true
 };
