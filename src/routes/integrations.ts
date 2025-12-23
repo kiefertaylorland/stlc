@@ -135,7 +135,14 @@ router.post('/:type/callback', (req: Request, res: Response) => {
   const storedState = oauthStates.get(state);
   oauthStates.delete(state); // One-time use
   
-  if (storedState?.type !== type) {
+  // Ensure state token has not expired (10 minutes)
+  if (!storedState || Date.now() - storedState.timestamp > 600000) {
+    return res.status(400).json({
+      error: 'Expired or invalid state parameter'
+    });
+  }
+
+  if (storedState.type !== type) {
     return res.status(400).json({
       error: 'State parameter type mismatch'
     });
