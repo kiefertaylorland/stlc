@@ -29,6 +29,7 @@ export class PlaywrightService {
     return description
       .replace(/\\/g, '\\\\')   // escape backslashes
       .replace(/'/g, '\\\'')    // escape single quotes
+      .replace(/\t/g, '\\t')    // escape tab characters
       .replace(/\r?\n/g, ' ');  // normalize newlines to spaces
   }
 
@@ -50,6 +51,10 @@ test('${sanitizedDescription}', async ({ page }) => {
 
   /**
    * Validate Playwright test syntax
+   * 
+   * @param _code Test code to validate (currently unused in placeholder implementation).
+   *              Will be used to perform syntax and semantic validation of Playwright test code
+   *              when the validation logic is implemented.
    */
   async validateTest(_code: string): Promise<{ valid: boolean; errors?: string[] }> {
     // Placeholder - will implement syntax validation

@@ -37,9 +37,21 @@ export abstract class IntegrationProvider {
 }
 
 /**
- * Factory for creating integration providers
+ * Factory for creating integration providers.
+ * 
+ * TODO: Implement provider selection and instantiation once concrete
+ * integration providers are added. The `_config` parameter is accepted
+ * now so callers can be wired without changes, but it is intentionally
+ * unused in this placeholder implementation.
  */
 export class IntegrationFactory {
+  /**
+   * Placeholder factory method for creating integration providers.
+   * 
+   * @param type Integration type requested.
+   * @param _config Integration configuration (currently unused in placeholder).
+   * @throws {Error} Always, until integration providers are implemented.
+   */
   static createProvider(type: IntegrationType, _config: IntegrationConfig): IntegrationProvider {
     // Placeholder - will be implemented with actual providers
     throw new Error(`Integration provider for ${type} not yet implemented`);

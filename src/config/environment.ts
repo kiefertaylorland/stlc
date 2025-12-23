@@ -24,6 +24,8 @@ if (!sessionSecret) {
 export const config = {
   port: process.env.PORT || 3000,
   nodeEnv,
+  // sessionSecret is defined for future use when session management is implemented
+  // Currently not used but included for forward compatibility
   sessionSecret,
   
   // OAuth configurations (to be populated when API tokens are available)

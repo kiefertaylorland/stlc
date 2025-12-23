@@ -13,11 +13,18 @@ const app: Express = express();
 // Security middleware
 app.use(helmet());
 
-// Configure CORS with specific origins for production
+// Configure CORS with specific origins for production and restricted localhost origins for development
+const devAllowedOrigins = process.env.DEV_ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
 const corsOptions = {
   origin: config.nodeEnv === 'production' 
     ? process.env.ALLOWED_ORIGINS?.split(',') || false
-    : '*',
+    : devAllowedOrigins,
   credentials: true
 };
 app.use(cors(corsOptions));
@@ -35,11 +42,19 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.'
 });
 
+// Health check rate limiter (less restrictive)
+const healthLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // 30 requests per minute
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // Apply rate limiting to API routes
 app.use('/api/', limiter);
 
-// Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+// Health check endpoint with rate limiting
+app.get('/health', healthLimiter, (req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -69,10 +84,29 @@ app.use(errorHandler);
 
 // Start server
 const PORT = config.port;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 STLC Testing Tool server running on port ${PORT}`);
   console.log(`📊 Environment: ${config.nodeEnv}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/health`);
 });
+
+// Graceful shutdown handling
+const gracefulShutdown = (signal: string) => {
+  console.log(`\n${signal} received. Starting graceful shutdown...`);
+  
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+  
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default app;

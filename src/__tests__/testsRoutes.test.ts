@@ -60,8 +60,20 @@ describe('Tests Routes', () => {
         .send({ description: "Test with 'quotes' and \\backslashes\\" });
 
       expect(response.status).toBe(200);
-      expect(response.body.test.code).toContain("\\'");
-      expect(response.body.test.code).toContain("\\\\");
+      expect(response.body.test.code).toContain(String.raw`\'`);
+      expect(response.body.test.code).toContain(String.raw`\\`);
+    });
+
+    it('should return 400 for invalid sourceType', async () => {
+      const response = await request(app)
+        .post('/api/v1/tests/generate')
+        .send({ 
+          description: 'Test login functionality',
+          sourceType: 'invalid'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Invalid sourceType');
     });
   });
 

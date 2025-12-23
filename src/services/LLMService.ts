@@ -15,6 +15,11 @@ export class LLMService {
 
   /**
    * Send a chat message and get a response
+   * 
+   * @param message The message to send to the LLM
+   * @param _context Optional context for the chat (e.g., conversationId, userId, metadata).
+   *                 Currently unused in placeholder implementation but will be used to maintain
+   *                 conversation state and provide additional context to the LLM when integrated.
    */
   async chat(message: string, _context?: ChatContext): Promise<string> {
     // Placeholder - will integrate with actual LLM API
@@ -22,7 +27,7 @@ export class LLMService {
       return this.getMockResponse(message);
     }
     
-    // TODO: Implement actual LLM API call
+    // TODO: Implement actual LLM API call using context for conversation state
     return this.getMockResponse(message);
   }
 
@@ -73,8 +78,9 @@ export class LLMService {
     // Only include safe metadata fields
     if (context.metadata) {
       sanitized.metadata = Object.keys(context.metadata).reduce((acc, key) => {
-        // Exclude potentially sensitive fields
-        if (!['token', 'secret', 'password', 'key'].some(s => key.toLowerCase().includes(s))) {
+        // Exclude potentially sensitive fields (case-insensitive check)
+        const lowerKey = key.toLowerCase();
+        if (!['token', 'secret', 'password', 'key', 'apikey', 'api_key'].some(s => lowerKey.includes(s))) {
           acc[key] = context.metadata![key];
         }
         return acc;

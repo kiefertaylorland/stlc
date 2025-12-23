@@ -6,6 +6,7 @@ const playwrightService = new PlaywrightService();
 
 // Constants for validation
 const MAX_DESCRIPTION_LENGTH = 2000;
+const VALID_SOURCE_TYPES = ['figma', 'jira', 'testrail', 'manual'] as const;
 
 /**
  * POST /api/v1/tests/generate
@@ -30,6 +31,13 @@ router.post('/generate', async (req: Request, res: Response) => {
     if (description.length > MAX_DESCRIPTION_LENGTH) {
       return res.status(400).json({
         error: `Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`
+      });
+    }
+
+    // Validate sourceType if provided
+    if (sourceType && !VALID_SOURCE_TYPES.includes(sourceType)) {
+      return res.status(400).json({
+        error: `Invalid sourceType. Must be one of: ${VALID_SOURCE_TYPES.join(', ')}`
       });
     }
 

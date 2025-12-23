@@ -4,11 +4,13 @@ import crypto from 'crypto';
 
 const router = Router();
 
-// In-memory store for OAuth state tokens (should be replaced with proper session store)
+// In-memory store for OAuth state tokens
+// NOTE: This is suitable for development but should be replaced with a distributed
+// session store (e.g., Redis) for production deployments with multiple server instances
 const oauthStates = new Map<string, { timestamp: number; type: string }>();
 
 // Clean up expired states every 10 minutes
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [state, data] of oauthStates.entries()) {
     if (now - data.timestamp > 600000) { // 10 minutes
@@ -16,6 +18,17 @@ setInterval(() => {
     }
   }
 }, 600000);
+
+// Allow cleanup on module unload (for testing and shutdown)
+if (cleanupInterval.unref) {
+  cleanupInterval.unref();
+}
+
+// Export cleanup function for graceful shutdown
+export const cleanupOAuthStates = () => {
+  clearInterval(cleanupInterval);
+  oauthStates.clear();
+};
 
 /**
  * GET /api/v1/integrations
@@ -126,6 +139,22 @@ router.post('/:type/callback', (req: Request, res: Response) => {
     return res.status(400).json({
       error: 'State parameter type mismatch'
     });
+  }
+  
+  // Additional CSRF protection: validate request origin/referer
+  const origin = req.headers.origin;
+  const referer = req.headers.referer;
+  
+  // In production, verify the origin/referer matches expected OAuth provider domains
+  // This is a placeholder check - actual implementation should validate against
+  // specific OAuth provider domains based on the integration type
+  if (process.env.NODE_ENV === 'production') {
+    if (!origin && !referer) {
+      return res.status(400).json({
+        error: 'Missing Origin and Referer headers. Possible CSRF attack.'
+      });
+    }
+    // TODO: Add specific domain validation based on integration type
   }
   
   // Placeholder - will implement actual OAuth token exchange

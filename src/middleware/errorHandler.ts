@@ -22,11 +22,14 @@ export const errorHandler = (
     method: req.method
   });
 
+  // Limit stack trace depth for response payload
+  const limitedStack = err.stack ? err.stack.split('\n').slice(0, 10).join('\n') : undefined;
+
   res.status(statusCode).json({
     error: {
       message,
       statusCode,
-      ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+      ...(process.env.NODE_ENV !== 'production' && { stack: limitedStack })
     }
   });
 };
