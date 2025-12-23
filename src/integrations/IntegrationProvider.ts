@@ -1,12 +1,12 @@
-import { IntegrationType, OAuthTokens } from '../types';
+import { IntegrationType, OAuthTokens, IntegrationConfig } from '../types';
 
 /**
  * Base interface for all integration providers
  */
 export abstract class IntegrationProvider {
-  protected config: any;
+  protected config: IntegrationConfig;
   
-  constructor(config: any) {
+  constructor(config: IntegrationConfig) {
     this.config = config;
   }
 
@@ -40,7 +40,7 @@ export abstract class IntegrationProvider {
  * Factory for creating integration providers
  */
 export class IntegrationFactory {
-  static createProvider(type: IntegrationType, _config: any): IntegrationProvider {
+  static createProvider(type: IntegrationType, _config: IntegrationConfig): IntegrationProvider {
     // Placeholder - will be implemented with actual providers
     throw new Error(`Integration provider for ${type} not yet implemented`);
   }

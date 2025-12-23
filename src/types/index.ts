@@ -25,7 +25,7 @@ export interface IntegrationConfig {
   accessToken?: string;
   refreshToken?: string;
   apiUrl?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -56,5 +56,25 @@ export interface TestGenerationRequest {
   description: string;
   sourceType?: 'figma' | 'jira' | 'testrail' | 'manual';
   sourceId?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Context for LLM chat messages
+ */
+export interface ChatContext {
+  conversationId?: string;
+  userId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Context for test generation from various sources
+ */
+export interface TestGenerationContext {
+  sourceData?: Record<string, unknown>;
+  requirements?: string[];
+  designUrl?: string;
+  issueId?: string;
+  metadata?: Record<string, unknown>;
 }

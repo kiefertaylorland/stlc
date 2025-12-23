@@ -4,6 +4,9 @@ import { PlaywrightService } from '../services/PlaywrightService';
 const router = Router();
 const playwrightService = new PlaywrightService();
 
+// Constants for validation
+const MAX_DESCRIPTION_LENGTH = 2000;
+
 /**
  * POST /api/v1/tests/generate
  * Generate a Playwright test from natural language description
@@ -18,6 +21,18 @@ router.post('/generate', async (req: Request, res: Response) => {
       });
     }
 
+    if (typeof description !== 'string') {
+      return res.status(400).json({
+        error: 'Description must be a string'
+      });
+    }
+
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
+      return res.status(400).json({
+        error: `Description must not exceed ${MAX_DESCRIPTION_LENGTH} characters`
+      });
+    }
+
     const test = await playwrightService.generateTest({
       description,
       sourceType,
@@ -29,10 +44,11 @@ router.post('/generate', async (req: Request, res: Response) => {
       success: true,
       test
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error('Error generating test:', error);
     res.status(500).json({
       error: 'Failed to generate test',
-      message: error.message
+      ...(process.env.NODE_ENV !== 'production' && error instanceof Error && { details: error.message })
     });
   }
 });
@@ -57,10 +73,11 @@ router.post('/validate', async (req: Request, res: Response) => {
       success: true,
       validation
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error('Error validating test:', error);
     res.status(500).json({
       error: 'Failed to validate test',
-      message: error.message
+      ...(process.env.NODE_ENV !== 'production' && error instanceof Error && { details: error.message })
     });
   }
 });

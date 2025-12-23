@@ -33,17 +33,41 @@ describe('PlaywrightService', () => {
       expect(result.code).toContain('Navigate to homepage and verify title');
     });
 
-    it('should sanitize quotes in description to prevent code injection', async () => {
+    it('should escape single quotes in description to prevent code injection', async () => {
       const request = {
-        description: "Test with 'single' and \"double\" quotes"
+        description: "Test with 'single quotes'"
       };
 
       const result = await service.generateTest(request);
 
-      // Quotes should be removed from the test name in the code
-      expect(result.code).toContain("test('Test with single and double quotes'");
-      expect(result.code).not.toContain("'single'");
-      expect(result.code).not.toContain('"double"');
+      // Single quotes should be escaped
+      expect(result.code).toContain("test('Test with \\'single quotes\\''");
+    });
+
+    it('should escape backslashes in description', async () => {
+      const request = {
+        description: "Test with \\ backslash"
+      };
+
+      const result = await service.generateTest(request);
+
+      // Backslashes should be escaped
+      expect(result.code).toContain('\\\\');
+    });
+
+    it('should replace newlines with spaces in description', async () => {
+      const request = {
+        description: "Test with\nmultiple\nlines"
+      };
+
+      const result = await service.generateTest(request);
+
+      // Newlines in the description should be replaced with spaces
+      expect(result.code).toContain("test('Test with multiple lines'");
+      // The test name should not have newlines
+      const testNameMatch = result.code.match(/test\('([^']+)'/);
+      expect(testNameMatch).toBeDefined();
+      expect(testNameMatch![1]).not.toContain('\n');
     });
   });
 
