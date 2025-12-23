@@ -1,0 +1,35 @@
+import { Request, Response, NextFunction } from 'express';
+
+export interface AppError extends Error {
+  statusCode?: number;
+  isOperational?: boolean;
+}
+
+export const errorHandler = (
+  err: AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  console.error('Error:', {
+    message,
+    statusCode,
+    stack: err.stack,
+    path: req.path,
+    method: req.method
+  });
+
+  // Limit stack trace depth for response payload
+  const limitedStack = err.stack ? err.stack.split('\n').slice(0, 10).join('\n') : undefined;
+
+  res.status(statusCode).json({
+    error: {
+      message,
+      statusCode,
+      ...(process.env.NODE_ENV !== 'production' && { stack: limitedStack })
+    }
+  });
+};
