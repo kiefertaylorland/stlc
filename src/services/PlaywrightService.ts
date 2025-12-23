@@ -24,9 +24,17 @@ export class PlaywrightService {
   /**
    * Generate a basic test template
    */
+  private escapeTestDescription(description: string): string {
+    // Escape characters that could break the single-quoted string literal
+    return description
+      .replace(/\\/g, '\\\\')   // escape backslashes
+      .replace(/'/g, '\\\'')    // escape single quotes
+      .replace(/\r?\n/g, ' ');  // normalize newlines to spaces
+  }
+
   private generateBasicTestTemplate(description: string): string {
-    // Sanitize description to prevent code injection
-    const sanitizedDescription = description.replace(/['"]/g, '');
+    // Escape description to prevent code injection into generated test title
+    const sanitizedDescription = this.escapeTestDescription(description);
     
     return `import { test, expect } from '@playwright/test';
 
