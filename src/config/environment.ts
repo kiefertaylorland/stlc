@@ -2,10 +2,29 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+let sessionSecret = process.env.SESSION_SECRET;
+
+if (!sessionSecret) {
+  if (nodeEnv === 'production') {
+    throw new Error(
+      'SESSION_SECRET environment variable must be set in production. ' +
+      'Refusing to start with an insecure default session secret.'
+    );
+  } else {
+    console.warn(
+      "Warning: Using insecure default session secret for non-production environment. " +
+      "Set the SESSION_SECRET environment variable to override this."
+    );
+    sessionSecret = 'default-secret-change-in-production';
+  }
+}
+
 export const config = {
   port: process.env.PORT || 3000,
-  nodeEnv: process.env.NODE_ENV || 'development',
-  sessionSecret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
+  nodeEnv,
+  sessionSecret,
   
   // OAuth configurations (to be populated when API tokens are available)
   oauth: {
